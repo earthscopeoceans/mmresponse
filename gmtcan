@@ -1,0 +1,41 @@
+#! /bin/csh 
+if($#argv<2) then
+  echo "Assuming time -45 to 50"
+  echo "Other usage: gmtcan [t1 t2 [symb]]"
+  echo "for start- end times t1,t2 and symbol plotting on/off"
+  echo "Plots can0 as well as the edited can file"
+  set t1 = -45
+  set t2 = 50
+else
+  set t1 = $argv[1]
+  set t2 = $argv[2]
+endif  
+gmt gmtset PS_MEDIA letter
+gmt gmtset FONT_ANNOT_PRIMARY 10 FONT_LABEL 10 FONT_TITLE 14
+gmt gmtset PROJ_LENGTH_UNIT cm
+rm -fr can.ps 
+gmtinfo can.xy
+if($#argv>2) then
+  gmt psxy can.xy -R${t1}/${t2}/-1.4e8/1.4e8 -JX20/16 -Bafg:time:/afg:can:WnS -W1p  -K >> can.ps
+  if(-e 'can0.xy') then
+    gmt psxy can0.xy -R -J -W1p,red -K -O >> can.ps
+  endif  
+  gmt psxy can.xy -R -J -Sc0.15 -K -O >> can.ps
+  gmt psxy Pa.xy -R${t1}/${t2}/-1000/1000 -J -Bafg:time:/af:Pa:E -W1p,green -K -O >> can.ps
+else
+  gmt psxy can.xy -R${t1}/${t2}/-1.4e8/1.4e8 -JX20/16 -Bafg:time:/afg:can:eWnS -W1p  -K > can.ps
+  if(-e 'can0.xy') then
+    gmt psxy can0.xy -R -J -W1p,red -K -O >> can.ps
+    gmt psxy Pa.xy -R${t1}/${t2}/-1000/1000 -J -Bafg:time:/af:Pa:E -W1p,green -K -O >> can.ps
+  endif  
+endif
+gmt psxy -R${t1}/${t2}/-1.4e8/1.4e8  -J -Wthin,green -O >> can.ps << eof
+$t1 -134217728
+$t2 -134217728
+>
+$t1 134217712
+$t2 134217712
+eof
+gmt psconvert -A -Tf -P can.ps
+open -a "Preview"  can.pdf
+rm can.ps
