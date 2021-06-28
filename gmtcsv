@@ -1,0 +1,24 @@
+#! /bin/csh -v
+gmt gmtset PS_MEDIA letter
+gmt gmtset FONT_ANNOT_PRIMARY 10 FONT_LABEL 10 FONT_TITLE 14
+gmt gmtset PROJ_LENGTH_UNIT cm
+
+if($#argv<1) then
+  echo "Usage: gmtcsv xxx will plot xxx.csv"
+  echo Be sure to remove the last few lines with commas in the csv file
+  exit
+endif
+if(-e $argv[1].csv) then
+  echo Plotting $argv[1].csv
+else
+  echo Cannot find file $argv[1].csv
+  exit
+endif  
+rm -fr resp.ps 
+awk -F, '{print $1,$4/1.0e8}' $argv[1].csv > resp.xy
+awk -F, '{print $1,$2}' $argv[1].csv > volt.xy
+gmt psxy resp.xy -h1 -R-55/55/-2/2 -JX20/10  -Bafg:time:/afg:"CAN*10^8":WnS -Wthin -K > resp.ps
+gmt psxy volt.xy -h1 -J -R-55/55/-3/3 -Baf/af:Volt:E -Wthin,red -O >> resp.ps
+gmt psconvert -A -Tf -P resp.ps
+open -a "Preview"  resp.pdf
+rm -f resp.ps
